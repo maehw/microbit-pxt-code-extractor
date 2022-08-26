@@ -14,6 +14,18 @@ if __name__ == '__main__':
                         dest='file',
                         help='path to bbc micro:bit HEX file')
 
+    parser.add_argument('-l',
+                        action="store",
+                        required=False,
+                        dest='lzmafile',
+                        help='path to output LZMA compressed text file')
+
+    parser.add_argument('-o',
+                        action="store",
+                        required=True,
+                        dest='outfile',
+                        help='path to output text file')
+
     args = parser.parse_args()
 
     # open the HEX file and read all lines from it
@@ -87,28 +99,24 @@ if __name__ == '__main__':
     print("Text:")
 
     code_text = ih.tobinstr(start=header_offset+header_len)
-    #print(code_text)
+    print(f"  Length of text before truncation: {len(code_text)}")
+    code_text = code_text[:text_len]
+    print(f"  Length of text after truncation: {len(code_text)}")
 
     if "LZMA" == json_header['compression']:
-        print("  Text is LZMA-compressed")
+        print("  Text is LZMA-compressed, decompressing")
+        if hasattr(args, 'lzmafile') and args.lzmafile:
+            with open(args.lzmafile, "wb") as text_file:
+                print(f"  Writing LZMA compressed output text to '{args.lzmafile}'")
+                text_file.write(code_text)
 
-        # Lempel–Ziv–Markov chain algorithm (LZMA) has a 13 byte header
-        # - Properties (single byte)
-        # - Dictionary size (32 bit, i.e. 4 bytes)
-        # - Uncompressed size (64 bit, i.e. 8 bytes)
+        print("  Decompressing LZMA...")
+        code_text = lzma.decompress(code_text)
 
-        # 'The value of the lclppb byte is lc + lp * 9 + pb * 9 * 5'
-        print( f"         Properties: {code_text[0]:02X}" )
+    with open(args.outfile, "wb") as text_file:
+        print(f"Writing output text to '{args.outfile}'")
+        text_file.write(code_text)
 
-        dict_size = int(f"{code_text[3]:02X}{code_text[2]:02X}{code_text[1]:02X}{code_text[0]:02X}", 16)
-        print( f"    Dictionary size: 0x{code_text[1]:02X}{code_text[2]:02X}{code_text[3]:02X}{code_text[4]:02X} ({dict_size})" )
-
-        uncompr_size = int(f"{code_text[12]:02X}{code_text[11]:02X}{code_text[10]:02X}{code_text[9]:02X}{code_text[8]:02X}{code_text[7]:02X}{code_text[6]:02X}{code_text[5]:02X}", 16)
-        print( f"  Uncompressed size: 0x{code_text[5]:02X}{code_text[6]:02X}{code_text[7]:02X}{code_text[8]:02X}{code_text[9]:02X}{code_text[10]:02X}{code_text[11]:02X}{code_text[12]:02X} ({uncompr_size})" )
-
-        #lzma.decompress(code_text) #, format=lzma.FORMAT_RAW, filters=[{'id': lzma.FILTER_LZMA2}])
-
-        with open("binary.lzma", "wb") as binary_file:
-            binary_file.write(code_text)
-
-        # print(code_text)
+    #print("  Pretty-printed JSON:")
+    #json_decompressed_text = loads( decompressed_text.decode('utf-8') )
+    #print( dumps(json_header, indent=4) )
