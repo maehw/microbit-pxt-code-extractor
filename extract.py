@@ -89,14 +89,22 @@ if __name__ == '__main__':
 
     print(f"{'-'*73}")
 
-    print("JSON header:")
+    print("JSON header (pretty-printed):")
     header_offset = 16
     json_header = ih.tobinstr(start=header_offset, size=header_len)
     json_header = loads( json_header.decode('utf-8') )
     print( dumps(json_header, indent=4) )
+    header_size = 0
+    if json_header['headerSize']:
+        header_size = int(json_header['headerSize'])
+        print(f"Header size: {header_size}")
+    text_size = 0
+    if json_header['textSize']:
+        text_size = int(json_header['textSize'])
+        print(f"Text size: {text_size}")
 
     print(f"{'-'*73}")
-    print("Text:")
+    print("Text meta data:")
 
     code_text = ih.tobinstr(start=header_offset+header_len)
     print(f"  Length of text before truncation: {len(code_text)}")
@@ -117,6 +125,13 @@ if __name__ == '__main__':
         print(f"Writing output text to '{args.outfile}'")
         text_file.write(code_text)
 
-    #print("  Pretty-printed JSON:")
-    #json_decompressed_text = loads( decompressed_text.decode('utf-8') )
-    #print( dumps(json_header, indent=4) )
+    print(f"{'-'*73}")
+    print("Code header dump (pretty-printed)")
+    code_header = loads(code_text[:header_size])
+    print( dumps(code_header, indent=4) )
+
+    print(f"{'-'*73}")
+    print("Code payload dump (pretty-printed)")
+    code_payload = code_text[header_size:]
+    print(f"  Length: {len(code_payload)}")
+    print( dumps(loads(code_payload), indent=4) )
