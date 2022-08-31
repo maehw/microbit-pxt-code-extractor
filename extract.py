@@ -3,34 +3,33 @@ from io import StringIO
 from re import sub
 from intelhex import IntelHex
 from json import loads, dumps
+from pathlib import Path
 import lzma
+import os
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='%(prog)s')
 
-    parser.add_argument('-f',
-                        action="store",
-                        required=True,
+    parser.add_argument(nargs='?',
                         dest='file',
-                        help='path to bbc micro:bit HEX file')
-
-    parser.add_argument('-l',
-                        action="store",
-                        required=False,
-                        dest='lzmafile',
-                        help='path to output LZMA compressed text file')
-
-    parser.add_argument('-o',
-                        action="store",
-                        required=True,
-                        dest='outfile',
-                        help='path to output text file')
+                        help='path to bbc micro:bit HEX input file')
 
     args = parser.parse_args()
+    json_indent = 4
 
     # open the HEX file and read all lines from it
     fhandle = open(args.file, 'r')
     lines = fhandle.readlines()
+
+    # create output directory
+    filename = Path(args.file)
+    out_folder = filename.parents[0].joinpath(filename.stem)
+    out_folder = Path(os.getcwd()).joinpath(filename.stem)
+    print(f"Input file w/o extension: {filename.stem}")
+    print(f"           Output folder: {out_folder}")
+    print(f"{'-'*73}")
+
+    Path(out_folder).mkdir(parents=True, exist_ok=True)
 
     # add extracted lines to a large string
     extracted_lines = ""
@@ -69,7 +68,6 @@ if __name__ == '__main__':
     ih = IntelHex(virtual_hex_file)
 
     print("Embedded source dump:")
-    print(f"{'-'*73}")
     #ih.dump() # dump the whole file
     ih[0:0xDF].dump() # only show some lines
     print("...")
@@ -89,11 +87,11 @@ if __name__ == '__main__':
 
     print(f"{'-'*73}")
 
-    print("JSON header (pretty-printed):")
+    print("Embedded JSON header (pretty-printed):")
     header_offset = 16
     json_header = ih.tobinstr(start=header_offset, size=header_len)
     json_header = loads( json_header.decode('utf-8') )
-    print( dumps(json_header, indent=4) )
+    print( dumps(json_header, indent=json_indent) )
     header_size = 0
     if json_header['headerSize']:
         header_size = int(json_header['headerSize'])
@@ -109,29 +107,38 @@ if __name__ == '__main__':
     code_text = ih.tobinstr(start=header_offset+header_len)
     print(f"  Length of text before truncation: {len(code_text)}")
     code_text = code_text[:text_len]
-    print(f"  Length of text after truncation: {len(code_text)}")
+    print(f"   Length of text after truncation: {len(code_text)}")
 
     if "LZMA" == json_header['compression']:
-        print("  Text is LZMA-compressed, decompressing")
-        if hasattr(args, 'lzmafile') and args.lzmafile:
-            with open(args.lzmafile, "wb") as text_file:
-                print(f"  Writing LZMA compressed output text to '{args.lzmafile}'")
-                text_file.write(code_text)
+        print("  Text is LZMA-compressed.")
+        with open(out_folder.joinpath("_lzma_compressed_text.bin"), "wb") as text_file:
+            print(f"  Writing LZMA compressed output text...")
+            text_file.write(code_text)
 
-        print("  Decompressing LZMA...")
+        print("  Decompressing LZMA text...")
         code_text = lzma.decompress(code_text)
 
-    with open(args.outfile, "wb") as text_file:
-        print(f"Writing output text to '{args.outfile}'")
+    with open(out_folder.joinpath("_packed_code.txt"), "wb") as text_file:
+        print(f"Writing packed code...")
         text_file.write(code_text)
 
     print(f"{'-'*73}")
     print("Code header dump (pretty-printed)")
     code_header = loads(code_text[:header_size])
-    print( dumps(code_header, indent=4) )
+    print( dumps(code_header, indent=json_indent) )
+
+    with open(out_folder.joinpath("_code_header.json"), "w") as code_header_file:
+        print(f"Writing code header JSON file...")
+        code_header_file.write( dumps(code_header) )
 
     print(f"{'-'*73}")
-    print("Code payload dump (pretty-printed)")
+    print("Code payload analysis (pretty-printed)")
     code_payload = code_text[header_size:]
     print(f"  Length: {len(code_payload)}")
-    print( dumps(loads(code_payload), indent=4) )
+    code_payload_json = loads(code_payload)
+    output_files = list(code_payload_json.keys())
+    print(f"   Files: {output_files}")
+    for output_file in output_files:
+        with open(out_folder.joinpath(output_file), "w") as current_file:
+            print(f"Writing file '{output_file}'...")
+            current_file.write( dumps(code_payload_json.get(output_file)) )
