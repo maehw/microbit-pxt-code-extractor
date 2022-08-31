@@ -28,7 +28,14 @@ This project is not supporting the extraction of Python code from the BBC micro:
 > **Warning**
 > The Python script will automatically create an output folder named after the input file (without extension).
 
-Example:
+The following files are created by the tool and contain data from intermediate extraction steps:
+
+1. _code_header.json
+1. _lzma_compressed_text.bin
+1. _packed_code.txt
+
+
+Example usage and output files:
 
 ```
   $ python extract.py sound-device.hex       
