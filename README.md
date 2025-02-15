@@ -10,7 +10,7 @@ This project is not supporting the extraction of Python code from the BBC micro:
 ## Usage
 
 * Clone this git repository
-* Make sure the Python module dependencies are met: `pip3 install intelhex argparse lzma`
+* Make sure the Python module dependencies are met: `pip3 install intelhex argparse`
 * Run the script from a Python 3 environment (should be runnable under Windows, Linux and MacOS):
 
 ```
