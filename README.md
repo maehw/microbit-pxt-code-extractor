@@ -10,13 +10,13 @@ This project is not supporting the extraction of Python code from the BBC micro:
 ## Usage
 
 * Clone this git repository
-* Make sure the Python module dependencies are met: `pip3 install intelhex argparse lzma`
+* Make sure the Python module dependencies are met: `pip3 install intelhex argparse`
 * Run the script from a Python 3 environment (should be runnable under Windows, Linux and MacOS):
 
 ```
-  usage: extract.py [-h] [file]
+  usage: microbit-pxt-code-extractor.py [-h] [file]
 
-  extract.py
+  microbit-pxt-code-extractor.py
 
   positional arguments:
     file        path to bbc micro:bit HEX input file
@@ -38,7 +38,7 @@ The following files are created by the tool and contain data from intermediate e
 Example usage and output files:
 
 ```
-  $ python extract.py sound-device.hex       
+  $ python microbit-pxt-code-extractor.py sound-device.hex       
 Input file w/o extension: sound-device
            Output folder: /Users/matthias/local_repos/microbit-pxt-code-extractor/sound-device
 -------------------------------------------------------------------------
