@@ -14,15 +14,15 @@ This project is not supporting the extraction of Python code from the BBC micro:
 * Run the script from a Python 3 environment (should be runnable under Windows, Linux and MacOS):
 
 ```
-  usage: microbit-pxt-code-extractor.py [-h] [file]
+usage: microbit-pxt-code-extractor.py [-h] file
 
-  microbit-pxt-code-extractor.py
+microbit-pxt-code-extractor.py
 
-  positional arguments:
-    file        path to bbc micro:bit HEX input file
+positional arguments:
+  file        path to bbc micro:bit HEX input file
 
-  options:
-    -h, --help  show this help message and exit
+optional arguments:
+  -h, --help  show this help message and exit
 ```
 
 > **Warning**
