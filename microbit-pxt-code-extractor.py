@@ -178,6 +178,11 @@ if __name__ == '__main__':
     output_files = list(code_payload_json.keys())
     print(f"   Files: {output_files}")
     for output_file in output_files:
+        # replace characters that cause trouble
+        replacement_character = "-"
+        output_file = output_file.replace("~", replacement_character)
+        output_file = output_file.replace("/", replacement_character)
+        output_file = output_file.replace("\\", replacement_character)
         with open(out_folder.joinpath(output_file), "w") as current_file:
             print(f"Writing file '{output_file}'...")
             current_file.write(dumps(code_payload_json.get(output_file)))
