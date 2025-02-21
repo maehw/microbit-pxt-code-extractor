@@ -6,6 +6,7 @@ from re import sub
 from intelhex import IntelHex
 from json import loads, dumps
 from pathlib import Path
+from ast import literal_eval
 import lzma
 import os
 
@@ -185,4 +186,7 @@ if __name__ == '__main__':
         output_file = output_file.replace("\\", replacement_character)
         with open(out_folder.joinpath(output_file), "w") as current_file:
             print(f"Writing file '{output_file}'...")
-            current_file.write(dumps(code_payload_json.get(output_file)))
+            file_content = dumps(code_payload_json.get(output_file))
+            if file_content[0] == '"' and file_content[-1] == '"':
+                file_content = literal_eval(file_content)
+            current_file.write(file_content)
